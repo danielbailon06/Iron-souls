@@ -1,0 +1,96 @@
+@font-face {
+    font-family: "BreatheFire";
+    src: url("../fonts/BreatheFireIi-2z9W.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+}
+
+
+
+html,
+body {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    background-color: black;
+}
+
+#main-title
+{
+    font-family: "BreatheFire", serif;
+    color: rgb(253, 174, 114);
+    text-align: center;
+    font-size: 15vh;
+    text-shadow: 3px 3px 3px black;
+    pointer-events: none;
+}
+
+.main-menu {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: url("../img/main-menu/main-menu.png") center / contain no-repeat; 
+}
+
+.menu-btn {
+    position: relative;
+    display: inline-block;
+    top: 35%;
+}
+
+.menu-btn .btn-text {
+    font-size: 5vh;
+}
+
+.menu-btn:last-child .btn-text {
+    font-size: 4vh;
+}
+
+/*Centrar botones, estilo de letra, quitar eventos de cursor*/
+.btn-text {
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: "BreatheFire", serif;
+    color: rgb(253, 174, 114);
+    pointer-events: none;
+}
+
+/* Tamaño de los botones del menú principal */
+
+#new-game {
+    width: 50vh;
+}
+
+#options {
+    width: 40vh;
+}
+
+.first-scene {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: url("../img/first-scene.png") center / contain no-repeat; 
+}
+
+
+#character{
+     position: absolute;
+    width: 15vh;
+    top: 38vh;
+    left: 56vw;
+}
