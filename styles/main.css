@@ -89,8 +89,22 @@ body {
 
 
 #character{
-     position: absolute;
+    position: absolute;
     width: 15vh;
-    top: 38vh;
-    left: 56vw;
+    height: 15vh;
+    object-fit: contain;
+}
+
+#character.attack{
+  transform: scale(0.6);
+  
+}
+
+#enemy {
+  position: absolute;
+  width: 6vh;
+  height: 6vh;
+  background-color: crimson;
+  top: 40vh;
+  left: 70vw;
 }
