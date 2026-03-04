@@ -1,31 +1,26 @@
-
 // ======================= \\
 //         Player
 // ======================= \\
 
 class Player {
     constructor(element, startX, startY) {
-
         this.el = element;
 
-        // Posición inicio 
-
+        // Posición inicio
         this.positionX = startX;
         this.positionY = startY;
         this.step = 0.5;
 
         // Sprites
-
         this.idleSprite = "img/assets/character/character-idle.png";
         this.attackSprite = "img/assets/character/character-attack.png";
         this.el.src = this.idleSprite;
 
         // Límites del mapa
-
         this.minX = 40;
         this.maxX = 60;
-        this.minY = 35;
-        this.maxY = 45;
+        this.minY = 38;
+        this.maxY = 50;
 
         this.isAttacking = false;
 
@@ -58,9 +53,7 @@ class Player {
     }
 
     attack() {
-        if (this.isAttacking) {
-            return;
-        }
+        if (this.isAttacking) return;
 
         this.isAttacking = true;
         this.el.src = this.attackSprite;
@@ -82,44 +75,23 @@ class Player {
 const characterElement = document.getElementById("character");
 const player = new Player(characterElement, 57, 42);
 
-
 // ======================= \\
-//  Funcionalidad player
+//        Tutorial
 // ======================= \\
 
-document.addEventListener("keydown", (e) => {
+const tutorialBox = document.getElementById("tutorialBox");
 
-    if (e.code === "KeyW" || e.code === "ArrowUp") {
-        player.moveUp();
-    }
-    else if (e.code === "KeyS" || e.code === "ArrowDown") {
-        player.moveDown();
-    }
-    else if (e.code === "KeyA" || e.code === "ArrowLeft") {
-        player.moveLeft();
-    }
-    else if (e.code === "KeyD" || e.code === "ArrowRight") {
-        player.moveRight();
-    }
+let tutorialStep = 1;
+// 1 = mover
+// 2 = atacar 
+// 3 = interactuar
+// 4 = tutorial terminado
 
-    // Ataque player
+let moved = { up: false, down: false, left: false, right: false };
 
-    else if (e.code === "KeyC") {
-        player.attack();
-
-        if(!enemy.isAlive) return;
-
-        // Comprobar que el enemigo está en el área de ataque
-
-        if (checkCollision(characterElement, enemyElement)) {
-            // console.log("hit"); <- comprobar si hace hit por consola
-            enemy.takeDamage(20);
-        }
-    }
-});
-
-
-
+if (tutorialBox) {
+  tutorialBox.innerHTML = "Muévete con WASD o las flechas";
+}
 
 // ======================= \\
 //        Enemies
@@ -127,11 +99,9 @@ document.addEventListener("keydown", (e) => {
 
 class Enemy {
     constructor(element, startX, startY) {
-
         this.el = element;
 
         // Posición de inicio del enemigo
-
         this.positionX = startX;
         this.positionY = startY;
 
@@ -149,12 +119,11 @@ class Enemy {
         this.el.style.top = this.positionY + "vh";
     }
 
-    takeDamage(amount){
-        if(!this.isAlive) return;
-        if(!this.canTakeDamage) return;
+    takeDamage(amount) {
+        if (!this.isAlive) return;
+        if (!this.canTakeDamage) return;
 
         this.health -= amount;
-        console.log(this.health);
 
         this.el.classList.add("hit");
 
@@ -164,16 +133,23 @@ class Enemy {
             this.el.classList.remove("hit");
         }, 300);
 
-        if(this.health <= 0){
+        if (this.health <= 0) {
             this.die();
         }
     }
 
-    die(){
+    die() {
         this.isAlive = false;
-        console.log("dead");
-
         this.el.remove();
+
+        // Cuando muere el enemigo, mostrar E (si estamos en tutorial de matar/interactuar)
+        if (tutorialStep === 3) {
+            tutorialStep = 4; // ahora toca interactuar
+            if (tutorialBox) {
+                tutorialBox.style.display = "block";
+                tutorialBox.innerHTML = "Con la tecla E puedes interactuar con el entorno (pasar por portales, recoger monedas, etc.)";
+            }
+        }
     }
 }
 
@@ -181,9 +157,7 @@ const enemyElement = document.getElementById("enemy");
 const enemy = new Enemy(enemyElement, 46, 38);
 
 // Detectar colisión con enemies
-
 function checkCollision(playerElement, enemyElement) {
-
     const p = playerElement.getBoundingClientRect();
     const e = enemyElement.getBoundingClientRect();
 
@@ -193,8 +167,75 @@ function checkCollision(playerElement, enemyElement) {
         p.top < e.bottom &&
         p.bottom > e.top
     );
-
 }
+
+// ======================= \\
+//  Funcionalidad player
+// ======================= \\
+
+document.addEventListener("keydown", (e) => {
+    // Movimiento + marcar direcciones para el tutorial
+    if (e.code === "KeyW" || e.code === "ArrowUp") {
+        player.moveUp();
+        moved.up = true;
+    } else if (e.code === "KeyS" || e.code === "ArrowDown") {
+        player.moveDown();
+        moved.down = true;
+    } else if (e.code === "KeyA" || e.code === "ArrowLeft") {
+        player.moveLeft();
+        moved.left = true;
+    } else if (e.code === "KeyD" || e.code === "ArrowRight") {
+        player.moveRight();
+        moved.right = true;
+    }
+
+    // Pasar del paso 1 al 2 cuando se haya movido en todas direcciones
+    if (
+        tutorialStep === 1 &&
+        moved.up &&
+        moved.down &&
+        moved.left &&
+        moved.right
+    ) {
+        tutorialStep = 2;
+        tutorialBox.innerHTML = "Pulsa C para atacar";
+    }
+
+    // Ataque player
+    else if (e.code === "KeyC") {
+        player.attack();
+
+        // Pasar al siguiente paso de ltutorial
+        if (tutorialStep === 2) {
+            tutorialStep = 3;
+            tutorialBox.innerHTML = "Aprovecha que el enemigo está distraido y acaba con el!";
+
+            setTimeout(() => {
+                tutorialBox.style.display = "none";
+            }, 1500);
+        }
+
+        if (!enemy.isAlive) return;
+
+        // Comprobar que el enemigo está en el área de ataque
+        if (checkCollision(characterElement, enemyElement)) {
+            enemy.takeDamage(20);
+        }
+    }
+
+    if (e.code === "KeyE") {
+        if (tutorialStep === 4) {
+            tutorialStep = 5;
+
+            tutorialBox.style.display = "block";
+
+            setTimeout(() => {
+                tutorialBox.style.display = "none";
+            }, 1500);
+        }
+    }
+});
+
 
 
 

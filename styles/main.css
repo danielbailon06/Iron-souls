@@ -41,16 +41,11 @@ body {
 
 .menu-btn {
     position: relative;
-    display: inline-block;
     top: 35%;
 }
 
 .menu-btn .btn-text {
     font-size: 5vh;
-}
-
-.menu-btn:last-child .btn-text {
-    font-size: 4vh;
 }
 
 /*Centrar botones, estilo de letra, quitar eventos de cursor*/
@@ -70,20 +65,32 @@ body {
     width: 50vh;
 }
 
-#options {
-    width: 40vh;
-}
-
 .first-scene {
     width: 100%;
     height: 100%;
-    position: absolute;
+    position: relative;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
     flex-direction: column;
     align-items: center;
     background: url("../img/first-scene.png") center / contain no-repeat;
+}
+
+.messagebox {
+    position: absolute;
+    bottom: 1vh;
+    background: linear-gradient(305deg, #0000FF, #008AFF);
+    width: 20%;
+    border-radius: 10px;
+    border-width: 3px;
+    border-style: solid;
+    border-color: white;
+    padding: 10px;
+    color: white;
+    font-size: 20px;
+    font-family: monospace;
+    margin: 10px auto;
 }
 
 
@@ -94,12 +101,12 @@ body {
     object-fit: contain;
 
     /*Comprobar hitbox*/
-   /* background-color: blue;*/
+    /* background-color: blue;*/
 }
 
 #character.attack {
     /*Comprobar hitbox*/
-   /* background-color: green;*/
+    /* background-color: green;*/
 
 }
 
@@ -111,9 +118,11 @@ body {
     left: 70vw;
 
     /*Comprobar hitbox*/
-   /* background-color: red;*/
+    /* background-color: red;*/
 }
 
+/* "Animación" del enemigo al perder vida */
+
 .hit {
-  filter: brightness(0.5) sepia(1) saturate(15) hue-rotate(-20deg);
+    filter: brightness(0.5) sepia(1) saturate(20) hue-rotate(-20deg);
 }
