@@ -80,7 +80,7 @@ class Player {
 }
 
 const characterElement = document.getElementById("character");
-const player = new Player(characterElement, 56, 38);
+const player = new Player(characterElement, 57, 42);
 
 
 // ======================= \\
@@ -107,10 +107,13 @@ document.addEventListener("keydown", (e) => {
     else if (e.code === "KeyC") {
         player.attack();
 
+        if(!enemy.isAlive) return;
+
         // Comprobar que el enemigo está en el área de ataque
 
         if (checkCollision(characterElement, enemyElement)) {
-            console.log("hit");
+            // console.log("hit"); <- comprobar si hace hit por consola
+            enemy.takeDamage(20);
         }
     }
 });
@@ -132,6 +135,12 @@ class Enemy {
         this.positionX = startX;
         this.positionY = startY;
 
+        this.maxHealth = 100;
+        this.health = 100;
+
+        this.isAlive = true;
+        this.canTakeDamage = true;
+
         this.move();
     }
 
@@ -139,10 +148,37 @@ class Enemy {
         this.el.style.left = this.positionX + "vw";
         this.el.style.top = this.positionY + "vh";
     }
+
+    takeDamage(amount){
+        if(!this.isAlive) return;
+        if(!this.canTakeDamage) return;
+
+        this.health -= amount;
+        console.log(this.health);
+
+        this.el.classList.add("hit");
+
+        this.canTakeDamage = false;
+        setTimeout(() => {
+            this.canTakeDamage = true;
+            this.el.classList.remove("hit");
+        }, 300);
+
+        if(this.health <= 0){
+            this.die();
+        }
+    }
+
+    die(){
+        this.isAlive = false;
+        console.log("dead");
+
+        this.el.remove();
+    }
 }
 
 const enemyElement = document.getElementById("enemy");
-const enemy = new Enemy(enemyElement, 50, 40);
+const enemy = new Enemy(enemyElement, 46, 38);
 
 // Detectar colisión con enemies
 
