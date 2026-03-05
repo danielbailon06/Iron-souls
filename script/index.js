@@ -1,3 +1,5 @@
+
+
 // ======================= \\
 //         Player
 // ======================= \\
@@ -16,38 +18,60 @@ class Player {
         this.attackSprite = "img/assets/character/character-attack.png";
         this.el.src = this.idleSprite;
 
-        // Límites del mapa
-        this.minX = 40;
-        this.maxX = 60;
-        this.minY = 38;
-        this.maxY = 50;
-
         this.isAttacking = false;
 
         this.move();
     }
 
     moveUp() {
-        if (this.positionY > this.minY) {
-            this.positionY -= this.step;
+        const oldY = this.positionY;
+
+        this.positionY -= this.step;
+        this.move();
+
+        if (this.positionY < this.minY) this.positionY = this.minY;
+
+        if (collidesWithWalls(this.el)) {
+            this.positionY = oldY;
             this.move();
         }
     }
     moveDown() {
-        if (this.positionY < this.maxY) {
-            this.positionY += this.step;
+        const oldY = this.positionY;
+
+        this.positionY += this.step;
+        this.move();
+
+        if (this.positionY > this.maxY) this.positionY = this.maxY;
+
+        if (collidesWithWalls(this.el)) {
+            this.positionY = oldY;
             this.move();
         }
     }
     moveLeft() {
-        if (this.positionX > this.minX) {
-            this.positionX -= this.step;
+        const oldX = this.positionX;
+
+        this.positionX -= this.step;
+        this.move();
+
+        if (this.positionX < this.minX) this.positionX = this.minX;
+
+        if (collidesWithWalls(this.el)) {
+            this.positionX = oldX;
             this.move();
         }
     }
     moveRight() {
-        if (this.positionX < this.maxX) {
-            this.positionX += this.step;
+        const oldX = this.positionX;
+
+        this.positionX += this.step;
+        this.move();
+
+        if (this.positionX > this.maxX) this.positionX = this.maxX;
+
+        if (collidesWithWalls(this.el)) {
+            this.positionX = oldX;
             this.move();
         }
     }
@@ -72,8 +96,42 @@ class Player {
     }
 }
 
+
 const characterElement = document.getElementById("character");
 const player = new Player(characterElement, 57, 42);
+
+const scene = document.body.dataset.scene;
+
+// Spawn jugador
+
+if (scene === "scene1") {
+
+    // Posición inicial escena 1
+    player.positionX = 57;
+    player.positionY = 42;
+
+    // Límites del mapa escena 1
+    player.minX = 40;
+    player.maxX = 60;
+    player.minY = 38;
+    player.maxY = 50;
+
+}
+
+if (scene === "scene2") {
+
+    // Posición inicial escena 2
+    player.positionX = 48.5;
+    player.positionY = 20;
+
+    // Límites del mapa escena 2
+    player.minX = 27;
+    player.maxX = 70;
+    player.minY = 30;
+    player.maxY = 70;
+}
+
+player.move();
 
 // ======================= \\
 //        Tutorial
@@ -82,15 +140,11 @@ const player = new Player(characterElement, 57, 42);
 const tutorialBox = document.getElementById("tutorialBox");
 
 let tutorialStep = 1;
-// 1 = mover
-// 2 = atacar 
-// 3 = interactuar
-// 4 = tutorial terminado
 
 let moved = { up: false, down: false, left: false, right: false };
 
 if (tutorialBox) {
-  tutorialBox.innerHTML = "Muévete con WASD o las flechas";
+    tutorialBox.innerHTML = "Muévete con WASD o las flechas";
 }
 
 // ======================= \\
@@ -101,7 +155,6 @@ class Enemy {
     constructor(element, startX, startY) {
         this.el = element;
 
-        // Posición de inicio del enemigo
         this.positionX = startX;
         this.positionY = startY;
 
@@ -142,21 +195,24 @@ class Enemy {
         this.isAlive = false;
         this.el.remove();
 
-        // Cuando muere el enemigo, mostrar E (si estamos en tutorial de matar/interactuar)
         if (tutorialStep === 3) {
-            tutorialStep = 4; // ahora toca interactuar
+            tutorialStep = 4;
             if (tutorialBox) {
                 tutorialBox.style.display = "block";
-                tutorialBox.innerHTML = "Con la tecla E puedes interactuar con el entorno (pasar por portales, recoger monedas, etc.)";
+                tutorialBox.innerHTML =
+                    "Con la tecla E puedes interactuar con el entorno (pasar por portales, recoger monedas, etc.)";
             }
         }
     }
 }
 
 const enemyElement = document.getElementById("enemy");
-const enemy = new Enemy(enemyElement, 46, 38);
+const enemy = new Enemy(enemyElement, 46, 50);
 
-// Detectar colisión con enemies
+// ======================= \\
+//       Colisiones
+// ======================= \\
+
 function checkCollision(playerElement, enemyElement) {
     const p = playerElement.getBoundingClientRect();
     const e = enemyElement.getBoundingClientRect();
@@ -169,12 +225,54 @@ function checkCollision(playerElement, enemyElement) {
     );
 }
 
+function checkCollisionElements(el1, el2) {
+    const a = el1.getBoundingClientRect();
+    const b = el2.getBoundingClientRect();
+
+    return (
+        a.left < b.right &&
+        a.right > b.left &&
+        a.top < b.bottom &&
+        a.bottom > b.top
+    );
+}
+
+function collidesWithWalls(playerElement) {
+    const walls = document.querySelectorAll(".wall");
+
+    for (let wall of walls) {
+        if (checkCollisionElements(playerElement, wall)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+// ======================= \\
+//  Mensaje interacción
+// ======================= \\
+
+function updateInteractMessage() {
+    const portal = document.getElementById("portal-hitbox");
+    const interactMsg = document.getElementById("interact-message");
+
+    if (!portal || !interactMsg) return;
+
+    if (checkCollisionElements(characterElement, portal)) {
+        interactMsg.style.display = "block";
+    } else {
+        interactMsg.style.display = "none";
+    }
+}
+
 // ======================= \\
 //  Funcionalidad player
 // ======================= \\
 
 document.addEventListener("keydown", (e) => {
-    // Movimiento + marcar direcciones para el tutorial
+
+    // Movimiento
     if (e.code === "KeyW" || e.code === "ArrowUp") {
         player.moveUp();
         moved.up = true;
@@ -189,7 +287,10 @@ document.addEventListener("keydown", (e) => {
         moved.right = true;
     }
 
-    // Pasar del paso 1 al 2 cuando se haya movido en todas direcciones
+    // actualizar mensaje de interactuar
+    updateInteractMessage();
+
+    // Tutorial movimiento
     if (
         tutorialStep === 1 &&
         moved.up &&
@@ -201,14 +302,14 @@ document.addEventListener("keydown", (e) => {
         tutorialBox.innerHTML = "Pulsa C para atacar";
     }
 
-    // Ataque player
+    // Ataque
     else if (e.code === "KeyC") {
         player.attack();
 
-        // Pasar al siguiente paso de ltutorial
         if (tutorialStep === 2) {
             tutorialStep = 3;
-            tutorialBox.innerHTML = "Aprovecha que el enemigo está distraido y acaba con el!";
+            tutorialBox.innerHTML =
+                "Aprovecha que el enemigo está distraido y acaba con el!";
 
             setTimeout(() => {
                 tutorialBox.style.display = "none";
@@ -217,13 +318,28 @@ document.addEventListener("keydown", (e) => {
 
         if (!enemy.isAlive) return;
 
-        // Comprobar que el enemigo está en el área de ataque
         if (checkCollision(characterElement, enemyElement)) {
             enemy.takeDamage(20);
         }
     }
 
+    // Interactuar
     if (e.code === "KeyE") {
+        const portalEl = document.getElementById("portal-hitbox");
+
+        if (portalEl && checkCollisionElements(characterElement, portalEl)) {
+
+            const fade = document.getElementById("fade-screen");
+
+            fade.style.opacity = "1";
+
+            setTimeout(() => {
+                window.location.href = "game-2.html";
+            }, 800);
+
+            return;
+        }
+
         if (tutorialStep === 4) {
             tutorialStep = 5;
 
@@ -235,7 +351,3 @@ document.addEventListener("keydown", (e) => {
         }
     }
 });
-
-
-
-

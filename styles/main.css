@@ -5,6 +5,13 @@
     font-style: normal;
 }
 
+@font-face {
+  font-family: "AncientModernTales";
+  src: url("../fonts/AncientModernTales-a7Po.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
 
 
 html,
@@ -42,6 +49,15 @@ body {
 .menu-btn {
     position: relative;
     top: 35%;
+}
+
+.info-btn {
+    position: relative;
+    top: 1%;
+}
+
+.info-btn .btn-text {
+    font-size: 5vh;
 }
 
 .menu-btn .btn-text {
@@ -88,9 +104,19 @@ body {
     border-color: white;
     padding: 10px;
     color: white;
-    font-size: 20px;
-    font-family: monospace;
+    font-size: 25px;
+    font-family: "AncientModernTales", serif;
     margin: 10px auto;
+}
+
+.text-info{
+    width: 40%;
+    font-size: 3vh;
+    color: rgb(253, 174, 114);
+      background-color: rgba(0, 0, 0, 0.75); /* Rojo con 50% de opacidad */
+
+    padding: 50px;
+    font-family: "AncientModernTales", serif;
 }
 
 
@@ -114,11 +140,40 @@ body {
     position: absolute;
     width: 8vh;
     height: 8vh;
-    top: 40vh;
+    top: 45vh;
     left: 70vw;
 
     /*Comprobar hitbox*/
     /* background-color: red;*/
+}
+
+/* Portal hitbox */
+#portal-hitbox{
+  position: absolute;
+  left: 44vw;
+  top: 25vh;
+  width: 6vw;
+  height: 15vh;
+
+  background: rgba(255, 0, 0, 0.25);
+  outline: 2px solid rgba(255,0,0,0.8);
+}
+
+#fade-screen{
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+
+  background: radial-gradient(circle, rgba(0,0,0,0) 0%, black 80%);
+  opacity: 0;
+
+  pointer-events: none;
+
+  transition: opacity 0.8s ease;
+
+  z-index: 99999;
 }
 
 /* "Animación" del enemigo al perder vida */
@@ -126,3 +181,85 @@ body {
 .hit {
     filter: brightness(0.5) sepia(1) saturate(20) hue-rotate(-20deg);
 }
+
+
+.second-scene {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: url("../img/second-scene.png") center / contain no-repeat;
+}
+
+.wall{
+  position:absolute;
+  background: rgba(255,0,0,0.25); /* debug */
+}
+
+
+
+#wall-bottom-left{
+  left: 6.25vw;
+  top:59vh;
+  width:40vw;
+  height:40vh;
+}
+
+#wall-bottom-right{
+  right: 6vw;
+  top: 59vh;
+  width:40vw;
+  height:40vh;
+}
+
+#pillar1{
+  left:43.25vw;
+  top:33vh;
+  width: 1vw;
+  height:3vh;
+}
+
+#pillar2{
+  left:55.75vw;
+  top:33vh;
+  width: 1vw;
+  height:3vh;
+}
+
+#pillar3{
+  left:38.75vw;
+  top:51vh;
+  width: 1vw;
+  height:3vh;
+}
+
+#pillar4{
+  left:60.4vw;
+  top:51vh;
+  width: 1vw;
+  height:3vh;
+}
+
+#water1{
+  left:32.5vw;
+  top:56vh;
+  width: 1vw;
+  height:3vh;
+}
+
+
+#water2{
+  left:64.5vw;
+  top:56vh;
+  width: 1vw;
+  height:3vh;
+}
+
+
+
+
+
