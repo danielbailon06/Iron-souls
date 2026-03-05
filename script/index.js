@@ -205,13 +205,13 @@ if (scene === "scene3") {
     player.maxY = 73;
 }
 
-if (scene === "boss-scene") {
+if (scene === "boss") {
 
-    // Posición inicial escena 3
-    player.positionX = 48.5;
+    // Posición inicial escena boss
+    player.positionX = 50;
     player.positionY = 70;
 
-    // Límites del mapa escena 3
+    // Límites del mapa escena boss
     player.minX = 30;
     player.maxX = 70;
     player.minY = 25;
@@ -361,6 +361,185 @@ setInterval(() => {
 
     });
 
+}, 50);
+
+
+class Boss {
+    constructor(element, startX, startY) {
+        this.el = element;
+
+        this.positionX = startX;
+        this.positionY = startY;
+
+        this.maxHealth = 1200;
+        this.health = 1200;
+        this.isAlive = true;
+
+        // Movimiento aleatorio
+        this.speed = 0.18;
+        this.dirX = 0;
+        this.dirY = 0;
+        this.changeDirEveryMs = 900;
+        this.lastDirChange = 0;
+
+        this.minX = 25;
+        this.maxX = 75;
+        this.minY = 10;
+        this.maxY = 70;
+
+        // Disparo
+        this.projectileSprite = "img/assets/enemies/magic-ball-boss.png";
+        this.shotCooldown = 900;
+        this.lastShot = 0;
+        this.projectileSpeed = 0.55;
+
+        this.move();
+        this.updateBossUI();
+    }
+
+    move() {
+        this.el.style.left = this.positionX + "vw";
+        this.el.style.top = this.positionY + "vh";
+    }
+
+    updateBossUI() {
+        const bar = document.getElementById("boss-hp-bar");
+        if (!bar) return;
+        const pct = Math.max(0, (this.health / this.maxHealth) * 100);
+        bar.style.width = pct + "%";
+    }
+
+    takeDamage(amount) {
+        if (!this.isAlive) return;
+        this.health -= amount;
+        this.updateBossUI();
+
+        if (this.health <= 0) {
+            this.die();
+        }
+    }
+
+    die() {
+        this.isAlive = false;
+        this.el.remove();
+
+        const hud = document.getElementById("boss-hud");
+        if (hud) hud.style.display = "none";
+    }
+
+    update(player) {
+        if (!this.isAlive) return;
+
+        const now = Date.now();
+
+        if (now - this.lastDirChange > this.changeDirEveryMs) {
+            this.lastDirChange = now;
+
+            const r = () => (Math.floor(Math.random() * 3) - 1);
+            this.dirX = r();
+            this.dirY = r();
+            if (this.dirX === 0 && this.dirY === 0) this.dirX = 1;
+        }
+
+        // mover
+        this.positionX += this.dirX * this.speed;
+        this.positionY += this.dirY * this.speed;
+
+        // límites
+        if (this.positionX < this.minX) { this.positionX = this.minX; this.dirX *= -1; }
+        if (this.positionX > this.maxX) { this.positionX = this.maxX; this.dirX *= -1; }
+        if (this.positionY < this.minY) { this.positionY = this.minY; this.dirY *= -1; }
+        if (this.positionY > this.maxY) { this.positionY = this.maxY; this.dirY *= -1; }
+
+        this.move();
+
+        if (now - this.lastShot >= this.shotCooldown) {
+            this.lastShot = now;
+            this.shootAt(player);
+        }
+    }
+
+    shootAt(player) {
+        const ball = document.createElement("img");
+        ball.className = "magic-ball";
+        ball.src = this.projectileSprite;
+
+        // Spawn desde el boss
+        const proj = {
+            el: ball,
+            x: this.positionX + 1.5,
+            y: this.positionY + 3.0,
+            alive: true,
+            damage: 14
+        };
+
+        const dx = (player.positionX - proj.x);
+        const dy = (player.positionY - proj.y);
+        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+
+        proj.vx = (dx / dist) * this.projectileSpeed;
+        proj.vy = (dy / dist) * this.projectileSpeed;
+
+        const sceneContainer = this.el.parentElement;
+        sceneContainer.appendChild(ball);
+
+        proj.el.style.left = proj.x + "vw";
+        proj.el.style.top = proj.y + "vh";
+
+        magicProjectiles.push(proj);
+    }
+}
+
+const magicProjectiles = [];
+
+function updateProjectiles(player) {
+    for (let i = magicProjectiles.length - 1; i >= 0; i--) {
+        const p = magicProjectiles[i];
+        if (!p.alive) {
+            magicProjectiles.splice(i, 1);
+            continue;
+        }
+
+        p.x += p.vx;
+        p.y += p.vy;
+
+        p.el.style.left = p.x + "vw";
+        p.el.style.top = p.y + "vh";
+
+        // colisión con jugador
+        if (checkCollisionElements(characterElement, p.el)) {
+            player.takeDamage(p.damage);
+            p.alive = false;
+            p.el.remove();
+            magicProjectiles.splice(i, 1);
+            continue;
+        }
+
+        // si se va muy lejos, borrarla (ajusta si quieres)
+        if (p.x < -10 || p.x > 110 || p.y < -10 || p.y > 110) {
+            p.alive = false;
+            p.el.remove();
+            magicProjectiles.splice(i, 1);
+        }
+    }
+}
+
+let boss = null;
+
+if (scene === "boss") { // o scene4, como prefieras
+    const bossEl = document.getElementById("boss");
+    if (bossEl) {
+        boss = new Boss(bossEl, 45, 10);
+    }
+} else {
+    const hud = document.getElementById("boss-hud");
+    if (hud) hud.style.display = "none";
+}
+
+
+setInterval(() => {
+    if (boss && boss.isAlive) boss.update(player);
+    updateProjectiles(player);
 }, 50);
 
 // ======================= \\
@@ -533,11 +712,16 @@ document.addEventListener("keydown", (e) => {
             }
 
         });
+
+        if (boss && boss.isAlive) {
+            if (checkCollisionElements(characterElement, boss.el)) {
+                boss.takeDamage(25);
+            }
+        }
     }
 
     // Interactuar
     if (e.code === "KeyE") {
-        console.log("E pressed | canJump:", canJump, "| isChangingScene:", isChangingScene);
 
         if (canJump) {
             doJump("boss-scene.html");
@@ -569,6 +753,9 @@ document.addEventListener("keydown", (e) => {
         }
     }
 });
+
+
+// Terminar animación caminar al soltar teclas
 
 document.addEventListener("keyup", (e) => {
     const moveKeys = ["KeyW", "KeyA", "KeyS", "KeyD", "ArrowUp", "ArrowLeft", "ArrowDown", "ArrowRight"];
