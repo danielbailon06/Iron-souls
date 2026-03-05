@@ -18,9 +18,21 @@ class Player {
         this.attackSprite = "img/assets/character/character-attack.png";
         this.el.src = this.idleSprite;
 
+        this.walk1Sprite = "img/assets/character/character-walk1.png";
+        this.walk2Sprite = "img/assets/character/character-walk2.png";
+
+        this.isWalking = false;
+        this.walkFrame = 0;
+        this.walkTimer = null;
+
         this.isAttacking = false;
 
         this.move();
+
+        this.maxHealth = 100;
+        this.health = 100;
+        this.canTakeDamage = true;
+        this.updateHealthUI();
     }
 
     moveUp() {
@@ -76,6 +88,28 @@ class Player {
         }
     }
 
+    startWalkAnim() {
+        if (this.isAttacking) return;
+        if (this.walkTimer) return;
+
+        this.walkTimer = setInterval(() => {
+            if (this.isAttacking) return;
+
+            this.walkFrame = 1 - this.walkFrame;
+            this.el.src = (this.walkFrame === 0) ? this.walk1Sprite : this.walk2Sprite;
+        }, 140);
+    }
+
+    stopWalkAnim() {
+        if (this.walkTimer) {
+            clearInterval(this.walkTimer);
+            this.walkTimer = null;
+        }
+        if (!this.isAttacking) {
+            this.el.src = this.idleSprite;
+        }
+    }
+
     attack() {
         if (this.isAttacking) return;
 
@@ -94,8 +128,35 @@ class Player {
         this.el.style.left = this.positionX + "vw";
         this.el.style.top = this.positionY + "vh";
     }
-}
 
+    updateHealthUI() {
+        const bar = document.getElementById("hp-bar");
+        if (!bar) return;
+        const pct = Math.max(0, (this.health / this.maxHealth) * 100);
+        bar.style.width = pct + "%";
+    }
+
+    takeDamage(amount) {
+        if (!this.canTakeDamage) return;
+
+        this.health -= amount;
+        this.updateHealthUI();
+
+        this.canTakeDamage = false;
+        this.el.classList.add("damage");
+
+        setTimeout(() => {
+            this.canTakeDamage = true;
+            this.el.classList.remove("damage");
+        }, 400);
+
+        if (this.health <= 0) {
+            location.reload();
+        }
+    }
+
+
+}
 
 const characterElement = document.getElementById("character");
 const player = new Player(characterElement, 57, 42);
@@ -122,12 +183,38 @@ if (scene === "scene2") {
 
     // Posición inicial escena 2
     player.positionX = 48.5;
-    player.positionY = 20;
+    player.positionY = 30;
 
     // Límites del mapa escena 2
     player.minX = 27;
     player.maxX = 70;
     player.minY = 30;
+    player.maxY = 100;
+}
+
+if (scene === "scene3") {
+
+    // Posición inicial escena 3
+    player.positionX = 48.5;
+    player.positionY = 10;
+
+    // Límites del mapa escena 3
+    player.minX = 48;
+    player.maxX = 49;
+    player.minY = 10;
+    player.maxY = 73;
+}
+
+if (scene === "boss-scene") {
+
+    // Posición inicial escena 3
+    player.positionX = 48.5;
+    player.positionY = 70;
+
+    // Límites del mapa escena 3
+    player.minX = 30;
+    player.maxX = 70;
+    player.minY = 25;
     player.maxY = 70;
 }
 
@@ -144,7 +231,7 @@ let tutorialStep = 1;
 let moved = { up: false, down: false, left: false, right: false };
 
 if (tutorialBox) {
-    tutorialBox.innerHTML = "Muévete con WASD o las flechas";
+    tutorialBox.innerHTML = "Use WASD or the arrow keys to move.";
 }
 
 // ======================= \\
@@ -165,6 +252,17 @@ class Enemy {
         this.canTakeDamage = true;
 
         this.move();
+
+        this.speed = 0.15;
+        this.aggroRange = 10;
+        this.attackRange = 2.2;
+        this.attackDamage = 10;
+        this.attackCooldown = 900;
+        this.lastAttack = 0;
+
+        this.idleSprite = "img/assets/enemies/eskeleto.png";
+        this.attackSprite = "img/assets/enemies/eskeleto-attack.png";
+        this.el.src = this.idleSprite;
     }
 
     move() {
@@ -200,14 +298,70 @@ class Enemy {
             if (tutorialBox) {
                 tutorialBox.style.display = "block";
                 tutorialBox.innerHTML =
-                    "Con la tecla E puedes interactuar con el entorno (pasar por portales, recoger monedas, etc.)";
+                    "Press E to interact with the environment. Try entering the portal.";
             }
         }
     }
+
+    update(player) {
+        if (!this.isAlive) return;
+
+        const dx = player.positionX - this.positionX;
+        const dy = player.positionY - this.positionY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        // Si el enemigo está suficientemente lejos, deja de perseguir
+        if (dist > this.aggroRange) return;
+
+        const now = Date.now();
+        if (dist <= this.attackRange) {
+            if (now - this.lastAttack >= this.attackCooldown) {
+                this.lastAttack = now;
+
+                this.playAttackAnim();
+                player.takeDamage(this.attackDamage);
+            }
+            return;
+        }
+
+        // Comprobar si está en rango para pegar
+        const nx = dx / dist;
+        const ny = dy / dist;
+
+        this.positionX += nx * this.speed;
+        this.positionY += ny * this.speed;
+
+        this.move();
+    }
+
+    playAttackAnim() {
+        this.el.src = this.attackSprite;
+        setTimeout(() => {
+            this.el.src = this.idleSprite;
+        }, 200);
+    }
 }
 
-const enemyElement = document.getElementById("enemy");
-const enemy = new Enemy(enemyElement, 46, 50);
+const enemyElements = document.querySelectorAll(".enemy");
+const enemies = [];
+
+enemyElements.forEach((el) => {
+    const x = parseFloat(el.dataset.x);
+    const y = parseFloat(el.dataset.y);
+    enemies.push(new Enemy(el, x, y));
+});
+
+setInterval(() => {
+
+    enemies.forEach(enemy => {
+
+        if (enemy.isAlive) {
+            enemy.update(player);
+        }
+
+    });
+
+}, 50);
 
 // ======================= \\
 //       Colisiones
@@ -249,9 +403,31 @@ function collidesWithWalls(playerElement) {
     return false;
 }
 
+let isChangingScene = false;
+
+function autoSceneChange(targetPage) {
+    if (isChangingScene) return;
+
+    const trigger = document.getElementById("scene-trigger");
+    if (!trigger) return;
+
+    if (checkCollisionElements(characterElement, trigger)) {
+        isChangingScene = true;
+
+        const fade = document.getElementById("fade-screen");
+        if (fade) fade.style.opacity = "1";
+
+        setTimeout(() => {
+            window.location.href = targetPage;
+        }, 800);
+    }
+}
+
 // ======================= \\
 //  Mensaje interacción
 // ======================= \\
+
+let canJump = false;
 
 function updateInteractMessage() {
     const portal = document.getElementById("portal-hitbox");
@@ -266,6 +442,29 @@ function updateInteractMessage() {
     }
 }
 
+function updateJumpPrompt() {
+    const hitbox = document.getElementById("jump-hitbox");
+    const msg = document.getElementById("jump-message");
+    if (!hitbox || !msg) return;
+
+    canJump = checkCollisionElements(characterElement, hitbox);
+    msg.style.display = canJump ? "block" : "none";
+}
+
+function doJump(targetPage) {
+    if (!canJump) return;
+
+    isChangingScene = true;
+
+    const fade = document.getElementById("fade-screen");
+    if (fade) fade.style.opacity = "1";
+
+    setTimeout(() => {
+        window.location.href = targetPage;
+    }, 800);
+}
+
+
 // ======================= \\
 //  Funcionalidad player
 // ======================= \\
@@ -274,20 +473,29 @@ document.addEventListener("keydown", (e) => {
 
     // Movimiento
     if (e.code === "KeyW" || e.code === "ArrowUp") {
+        player.startWalkAnim();
         player.moveUp();
         moved.up = true;
     } else if (e.code === "KeyS" || e.code === "ArrowDown") {
+        player.startWalkAnim();
         player.moveDown();
         moved.down = true;
     } else if (e.code === "KeyA" || e.code === "ArrowLeft") {
+        player.startWalkAnim();
         player.moveLeft();
         moved.left = true;
     } else if (e.code === "KeyD" || e.code === "ArrowRight") {
+        player.startWalkAnim();
         player.moveRight();
         moved.right = true;
     }
 
-    // actualizar mensaje de interactuar
+    updateJumpPrompt();
+
+    if (scene === "scene2") {
+        autoSceneChange("game-3.html");
+    }
+
     updateInteractMessage();
 
     // Tutorial movimiento
@@ -299,7 +507,7 @@ document.addEventListener("keydown", (e) => {
         moved.right
     ) {
         tutorialStep = 2;
-        tutorialBox.innerHTML = "Pulsa C para atacar";
+        tutorialBox.innerHTML = "Press C to attack";
     }
 
     // Ataque
@@ -309,22 +517,32 @@ document.addEventListener("keydown", (e) => {
         if (tutorialStep === 2) {
             tutorialStep = 3;
             tutorialBox.innerHTML =
-                "Aprovecha que el enemigo está distraido y acaba con el!";
+                "The enemy is distracted — finish him off!";
 
             setTimeout(() => {
                 tutorialBox.style.display = "none";
             }, 1500);
         }
 
-        if (!enemy.isAlive) return;
+        enemies.forEach(enemy => {
 
-        if (checkCollision(characterElement, enemyElement)) {
-            enemy.takeDamage(20);
-        }
+            if (!enemy.isAlive) return;
+
+            if (checkCollision(characterElement, enemy.el)) {
+                enemy.takeDamage(20);
+            }
+
+        });
     }
 
     // Interactuar
     if (e.code === "KeyE") {
+        console.log("E pressed | canJump:", canJump, "| isChangingScene:", isChangingScene);
+
+        if (canJump) {
+            doJump("boss-scene.html");
+            return;
+        }
         const portalEl = document.getElementById("portal-hitbox");
 
         if (portalEl && checkCollisionElements(characterElement, portalEl)) {
@@ -349,5 +567,12 @@ document.addEventListener("keydown", (e) => {
                 tutorialBox.style.display = "none";
             }, 1500);
         }
+    }
+});
+
+document.addEventListener("keyup", (e) => {
+    const moveKeys = ["KeyW", "KeyA", "KeyS", "KeyD", "ArrowUp", "ArrowLeft", "ArrowDown", "ArrowRight"];
+    if (moveKeys.includes(e.code)) {
+        player.stopWalkAnim();
     }
 });
