@@ -572,18 +572,6 @@ setInterval(() => {
 
 // Detectar colisión jugador y enemigo
 
-function checkCollision(playerElement, enemyElement) {
-    const p = playerElement.getBoundingClientRect();
-    const e = enemyElement.getBoundingClientRect();
-
-    return (
-        p.left < e.right &&
-        p.right > e.left &&
-        p.top < e.bottom &&
-        p.bottom > e.top
-    );
-}
-
 function checkCollisionElements(el1, el2) {
     const a = el1.getBoundingClientRect();
     const b = el2.getBoundingClientRect();
@@ -739,7 +727,7 @@ document.addEventListener("keydown", (e) => {
 
             if (!enemy.isAlive) return;
 
-            if (checkCollision(characterElement, enemy.el)) {
+            if (checkCollisionElements(characterElement, enemy.el)) {
                 enemy.takeDamage(20);
             }
 
