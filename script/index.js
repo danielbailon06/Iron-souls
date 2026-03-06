@@ -151,7 +151,7 @@ class Player {
         }, 400);
 
         if (this.health <= 0) {
-            location.reload();
+            playerDie();
         }
     }
 
@@ -220,6 +220,29 @@ if (scene === "boss") {
 
 player.move();
 
+function playerDie() {
+
+    const deathScreen = document.getElementById("death-screen");
+    deathScreen.classList.add("active");
+
+    setTimeout(() => {
+        location.reload();
+    }, 2500);
+}
+
+function bossVictory() {
+
+    const victoryScreen = document.getElementById("victory-screen");
+
+    if (victoryScreen) {
+        victoryScreen.classList.add("active");
+    }
+
+    setTimeout(() => {
+        window.location.href = "index.html";
+    }, 4000);
+}
+
 // ======================= \\
 //        Tutorial
 // ======================= \\
@@ -266,8 +289,8 @@ class Enemy {
     }
 
     move() {
-        this.el.style.left = this.positionX + "vw";
-        this.el.style.top = this.positionY + "vh";
+        this.el.style.left = this.positionX + "%";
+        this.el.style.top = this.positionY + "%";
     }
 
     takeDamage(amount) {
@@ -371,8 +394,8 @@ class Boss {
         this.positionX = startX;
         this.positionY = startY;
 
-        this.maxHealth = 1200;
-        this.health = 1200;
+        this.maxHealth = 750;
+        this.health = 750;
         this.isAlive = true;
 
         // Movimiento aleatorio
@@ -425,6 +448,8 @@ class Boss {
 
         const hud = document.getElementById("boss-hud");
         if (hud) hud.style.display = "none";
+
+        bossVictory();
     }
 
     update(player) {
@@ -441,11 +466,11 @@ class Boss {
             if (this.dirX === 0 && this.dirY === 0) this.dirX = 1;
         }
 
-        // mover
+        // Movimiento
         this.positionX += this.dirX * this.speed;
         this.positionY += this.dirY * this.speed;
 
-        // límites
+        // Límites mapa
         if (this.positionX < this.minX) { this.positionX = this.minX; this.dirX *= -1; }
         if (this.positionX > this.maxX) { this.positionX = this.maxX; this.dirX *= -1; }
         if (this.positionY < this.minY) { this.positionY = this.minY; this.dirY *= -1; }
@@ -464,7 +489,7 @@ class Boss {
         ball.className = "magic-ball";
         ball.src = this.projectileSprite;
 
-        // Spawn desde el boss
+        // Spawn proyectiles
         const proj = {
             el: ball,
             x: this.positionX + 1.5,
@@ -506,7 +531,7 @@ function updateProjectiles(player) {
         p.el.style.left = p.x + "vw";
         p.el.style.top = p.y + "vh";
 
-        // colisión con jugador
+        // Colisión con jugador
         if (checkCollisionElements(characterElement, p.el)) {
             player.takeDamage(p.damage);
             p.alive = false;
@@ -515,7 +540,6 @@ function updateProjectiles(player) {
             continue;
         }
 
-        // si se va muy lejos, borrarla (ajusta si quieres)
         if (p.x < -10 || p.x > 110 || p.y < -10 || p.y > 110) {
             p.alive = false;
             p.el.remove();
@@ -526,7 +550,7 @@ function updateProjectiles(player) {
 
 let boss = null;
 
-if (scene === "boss") { // o scene4, como prefieras
+if (scene === "boss") {
     const bossEl = document.getElementById("boss");
     if (bossEl) {
         boss = new Boss(bossEl, 45, 10);
@@ -545,6 +569,8 @@ setInterval(() => {
 // ======================= \\
 //       Colisiones
 // ======================= \\
+
+// Detectar colisión jugador y enemigo
 
 function checkCollision(playerElement, enemyElement) {
     const p = playerElement.getBoundingClientRect();
@@ -570,6 +596,8 @@ function checkCollisionElements(el1, el2) {
     );
 }
 
+// Detectar hitboxes elementos del mapa
+
 function collidesWithWalls(playerElement) {
     const walls = document.querySelectorAll(".wall");
 
@@ -581,6 +609,8 @@ function collidesWithWalls(playerElement) {
 
     return false;
 }
+
+// Cambiar escenas
 
 let isChangingScene = false;
 
@@ -605,6 +635,8 @@ function autoSceneChange(targetPage) {
 // ======================= \\
 //  Mensaje interacción
 // ======================= \\
+
+// Mensaje puente & pasar a la siguiente escena
 
 let canJump = false;
 

@@ -2,38 +2,43 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iron Souls</title>
-    <link rel="stylesheet" href="./styles/main.css">
-    <link rel="icon" type="image/png" sizes="32x32" href="img/favicon.ico">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iron Souls</title>
+  <link rel="stylesheet" href="./styles/main.css">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon.ico">
 
 </head>
 
 <body data-scene="boss">
 
-<div id="hud">
-  <div id="hp-wrap">
-    <div id="hp-bar"></div>
+  <div id="hud">
+    <div id="hp-wrap">
+      <div id="hp-bar"></div>
+    </div>
   </div>
-</div>
 
-<div class="boss-scene">
-   
+  <div class="boss-scene">
+
     <img src="img/assets/character/character-idle.png" id="character">
     <img id="boss" src="img/assets/enemies/boss.png">
 
-<div id="boss-hud">
-  <div id="boss-name">Astraea, Oracle of the Moon</div>
-  <div id="boss-hp-wrap">
-    <div id="boss-hp-bar"></div>
-  </div>
-</div>
-    
-   
+    <div id="boss-hud">
+      <div id="boss-name">Astraea, Oracle of the Moon</div>
+      <div id="boss-hp-wrap">
+        <div id="boss-hp-bar"></div>
+      </div>
+    </div>
+
+    <div id="death-screen">
+      YOU DIED
+    </div>
+    <div id="victory-screen">
+      YOU WIN
+    </div>
     <div id="fade-screen"></div>
-</div>
-    <script src="script/index.js"></script>
+  </div>
+  <script src="script/index.js"></script>
 </body>
 
 
